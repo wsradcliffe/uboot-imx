@@ -245,11 +245,13 @@
 };
 
 &usdhc1 {
+	assigned-clocks = <&clk IMX8MQ_CLK_USDHC1>;
+	assigned-clock-rates = <400000000>;
 	pinctrl-names = "default", "state_100mhz", "state_200mhz";
 	pinctrl-0 = <&pinctrl_usdhc1>;
 	pinctrl-1 = <&pinctrl_usdhc1_100mhz>;
 	pinctrl-2 = <&pinctrl_usdhc1_200mhz>;
-	bus-width = <8>;
+	bus-width = <4>;
 	non-removable;
 	no-sdio;
 	status = "okay";
@@ -301,13 +303,6 @@
 &iomuxc {
 	pinctrl-names = "default";
 
-	pinctrl_buck2: vddarmgrp {
-		fsl,pins = <
-			MX8MQ_IOMUXC_GPIO1_IO13_GPIO1_IO13		0x19
-		>;
-
-	};
-
 	pinctrl_fec1: fec1grp {
 		fsl,pins = <
 			MX8MQ_IOMUXC_ENET_MDC_ENET1_MDC			0x3
@@ -353,6 +348,21 @@
 		fsl,pins = <
 			MX8MQ_IOMUXC_I2C2_SCL_GPIO5_IO16        		0x7f
 			MX8MQ_IOMUXC_I2C2_SDA_GPIO5_IO17        		0x7f
+		>;
+	};
+
+	pinctrl_pcie0: pcie0grp {
+		fsl,pins = <
+			MX8MQ_IOMUXC_I2C4_SCL_PCIE1_CLKREQ_B		0x76 /* open drain, pull up */
+			MX8MQ_IOMUXC_GPIO1_IO06_GPIO1_IO6		0x16
+			MX8MQ_IOMUXC_SD2_WP_GPIO2_IO20			0x16 /* WB_PWR_EN */
+		>;
+	};
+
+	pinctrl_pcie1: pcie1grp {
+		fsl,pins = <
+			MX8MQ_IOMUXC_I2C4_SDA_PCIE2_CLKREQ_B		0x76 /* open drain, pull up */
+			MX8MQ_IOMUXC_SAI5_RXC_GPIO3_IO20		0x16 /* reset */
 		>;
 	};
 
