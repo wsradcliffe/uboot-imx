@@ -12,7 +12,8 @@ config=(
     [board]="maaxboard"
     [tag]="lf-5.10.35-2.0.0"
     [firmware]="firmware-imx-8.12.bin"
-    [cc]="aarch64-none-linux-gnu-"
+#    [cc]="aarch64-linux-gnu-"
+#    [cc]="aarch64-none-linux-gnu-"
 #    [cc]="aarch64-poky-linux-"
     [ddr]="ddr4_imem_1d_201810.bin ddr4_dmem_1d_201810.bin ddr4_imem_2d_201810.bin ddr4_dmem_2d_201810.bin"
     [ddr_version]="_201810"
@@ -261,8 +262,10 @@ function do_mkimage_cp_uboot() {
     cp "$src/arch/arm/dts/$dtb" "$dtb_dst"
     printf "uboot: cp: dtb: [$dtb] to [$dtb_dst] ... [OK]\n"
 
-    cp "$src/spl/u-boot-spl.bin" "$spl_bin_dst"
-    printf "uboot: cp: bin: [spl/u-boot-spl.bin] to [$spl_bin_dst] ... [OK]\n"
+    cp "$src/spl/u-boot-spl.bin" "$dst/"
+    printf "uboot: cp: bin: [spl/u-boot-spl.bin] to [$dst] ... [OK]\n"
+#    cp "$src/spl/u-boot-spl.bin" "$spl_bin_dst"
+#    printf "uboot: cp: bin: [spl/u-boot-spl.bin] to [$spl_bin_dst] ... [OK]\n"
 
     cp "$src/u-boot-nodtb.bin" "$dst/"
     printf "uboot: cp: bin: [u-boot-nodtb.bin] to [$dst] ... [OK]\n"
@@ -279,12 +282,17 @@ function do_atf_make() {
 
     pushd $dir > /dev/null 2>&1
 
-    printf "imx-atf: make PLAT=${PLATFORM} ... "
 
     # Clear LDFLAGS to avoid the option -Wl recognize issue
     unset LDFLAGS
 
-    make CROSS_COMPILE="${config[cc]}" PLAT="${PLATFORM}" -j8 > /dev/null 2>&1
+    if [[ -n "${config[cc]}" ]]; then
+        printf "imx-atf: make CROSS_COMPILE=${config[cc]} PLAT=${PLATFORM} ... "
+        make CROSS_COMPILE="${config[cc]}" PLAT="${PLATFORM}" -j8 > /dev/null 2>&1
+    else
+        printf "imx-atf: make CROSS_COMPILE=${CROSS_COMPILE} PLAT=${PLATFORM} ... "
+        make PLAT="${PLATFORM}" -j8 > /dev/null 2>&1
+    fi
 
     if [ $? -eq 0 ]; then
         printf "[OK]\n"
@@ -316,7 +324,8 @@ function do_mkimage_make() {
 
     make clean > /dev/null 2>&1
 
-    make SOC=${SOC_TARGET} DDR_FW_VERSION=${config[ddr_version]} ${target} > /dev/null 2>&1
+    make SOC=${SOC_TARGET} DDR_FW_VERSION=${config[ddr_version]} ${target}
+#    make SOC=${SOC_TARGET} DDR_FW_VERSION=${config[ddr_version]} ${target} > /dev/null 2>&1
     if [ $? -eq 0 ]; then
         printf "[OK]\n"
     else
