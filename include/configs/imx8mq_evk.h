@@ -63,7 +63,7 @@
 #define BOOT_TARGET_DEVICES(func) \
 	func(USB, usb, 0) \
 	func(MMC, mmc, 1) \
-	func(MMC, mmc, 0)
+	func(MMC, mmc, 2)
 
 #include <config_distro_bootcmd.h>
 #else
@@ -77,11 +77,11 @@
 #define JAILHOUSE_ENV \
 	"jh_clk= \0 " \
 	"jh_mmcboot=setenv fdtfile imx8mq-evk-root.dtb; " \
-		"setenv jh_clk clk_ignore_unused mem=1872M; " \
+		"setenv jh_clk clk_ignore_unused mem=2000M; " \
 			   "if run loadimage; then " \
 				   "run mmcboot; " \
 			   "else run jh_netboot; fi; \0" \
-	"jh_netboot=setenv fdtfile imx8mq-evk-root.dtb; setenv jh_clk clk_ignore_unused mem=1872MB; run netboot; \0 "
+	"jh_netboot=setenv fdtfile imx8mq-evk-root.dtb; setenv jh_clk clk_ignore_unused mem=2000M; run netboot; \0 "
 
 #define CONFIG_MFG_ENV_SETTINGS \
 	CONFIG_MFG_ENV_SETTINGS_DEFAULT \
@@ -175,7 +175,7 @@
 #define CONFIG_MMCROOT			"/dev/mmcblk1p2"  /* USDHC2 */
 
 /* Size of malloc() pool */
-#define CONFIG_SYS_MALLOC_LEN		SZ_32M
+#define CONFIG_SYS_MALLOC_LEN		((CONFIG_ENV_SIZE + (2 * 1024)) * 1024)
 
 #define CONFIG_SYS_SDRAM_BASE           0x40000000
 #define PHYS_SDRAM                      0x40000000

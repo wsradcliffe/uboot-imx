@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0+
 /*
- * Copyright 2019-2021 NXP
+ * Copyright 2019-2020 NXP
  *
  * PCIe DT fixup for NXP Layerscape SoCs
  * Author: Wasim Khan <wasim.khan@nxp.com>
@@ -13,8 +13,6 @@
 #include <asm/arch/soc.h>
 #include <linux/libfdt.h>
 #include "pcie_layerscape_fixup_common.h"
-
-extern int next_stream_id;
 
 void ft_pci_setup(void *blob, struct bd_info *bd)
 {
@@ -148,6 +146,8 @@ int pcie_next_streamid(int currentid, int idx)
 /* returns the next available streamid for pcie, -errno if failed */
 int pcie_next_streamid(int currentid, int idx)
 {
+	static int next_stream_id = FSL_PEX_STREAM_ID_START;
+
 	if (next_stream_id > FSL_PEX_STREAM_ID_END)
 		return -EINVAL;
 

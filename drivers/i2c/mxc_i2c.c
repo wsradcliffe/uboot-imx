@@ -435,10 +435,8 @@ int i2c_idle_bus(struct mxc_i2c_bus *i2c_bus)
 		return 0;
 	}
 
-	scl_gpio->flags = (scl_gpio->flags & ~GPIOD_MASK_DIR) | GPIOD_IS_IN;
-	dm_gpio_set_dir(scl_gpio);
-	sda_gpio->flags = (sda_gpio->flags & ~GPIOD_MASK_DIR) | GPIOD_IS_IN;
-	dm_gpio_set_dir(sda_gpio);
+	dm_gpio_set_dir_flags(scl_gpio, GPIOD_IS_IN);
+	dm_gpio_set_dir_flags(sda_gpio, GPIOD_IS_IN);
 	scl = dm_gpio_get_value(scl_gpio);
 	sda = dm_gpio_get_value(sda_gpio);
 
@@ -461,20 +459,16 @@ int i2c_idle_bus(struct mxc_i2c_bus *i2c_bus)
 		idle_sclks = i2c->max_transaction_bytes * 8 + 1;
 	/* Send high and low on the SCL line */
 	for (i = 0; i < idle_sclks; i++) {
-		scl_gpio->flags = (scl_gpio->flags & ~GPIOD_MASK_DIR) | GPIOD_IS_OUT;
-		dm_gpio_set_dir(scl_gpio);
+		dm_gpio_set_dir_flags(scl_gpio, GPIOD_IS_OUT);
 		dm_gpio_set_value(scl_gpio, 0);
 		udelay(50);
-		scl_gpio->flags = (scl_gpio->flags & ~GPIOD_MASK_DIR) | GPIOD_IS_IN;
-		dm_gpio_set_dir(scl_gpio);
+		dm_gpio_set_dir_flags(scl_gpio, GPIOD_IS_IN);
 		udelay(50);
 	}
 	start_time = get_timer(0);
 	for (;;) {
-		scl_gpio->flags = (scl_gpio->flags & ~GPIOD_MASK_DIR) | GPIOD_IS_IN;
-		dm_gpio_set_dir(scl_gpio);
-		sda_gpio->flags = (sda_gpio->flags & ~GPIOD_MASK_DIR) | GPIOD_IS_IN;
-		dm_gpio_set_dir(sda_gpio);
+		dm_gpio_set_dir_flags(scl_gpio, GPIOD_IS_IN);
+		dm_gpio_set_dir_flags(sda_gpio, GPIOD_IS_IN);
 		scl = dm_gpio_get_value(scl_gpio);
 		sda = dm_gpio_get_value(sda_gpio);
 		if ((sda & scl) == 1)

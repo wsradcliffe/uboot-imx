@@ -419,8 +419,6 @@ dtb-$(CONFIG_FSL_LSCH3) += fsl-ls2080a-qds.dtb \
 	fsl-lx2160a-qds-19-11-x.dtb \
 	fsl-lx2160a-qds-20-x-x.dtb \
 	fsl-lx2160a-qds-20-11-x.dtb \
-	fsl-lx2160a-qds-13-x-x.dtb \
-	fsl-lx2160a-qds-14-x-x.dtb \
 	fsl-lx2162a-qds.dtb\
 	fsl-lx2162a-qds-17-x.dtb\
 	fsl-lx2162a-qds-18-x.dtb\
@@ -849,7 +847,7 @@ dtb-$(CONFIG_ARCH_IMX8) += \
 	fsl-imx8dxl-phantom-mek.dtb \
 	fsl-imx8dxl-evk.dtb \
 	fsl-imx8dxl-evk-lcdif.dtb \
-	fsl-imx8dxl-ddr3l-evk.dtb \
+	fsl-imx8dxl-ddr3-evk.dtb \
 	imx8-deneb.dtb \
 	imx8-giedi.dtb
 
@@ -881,19 +879,10 @@ dtb-$(CONFIG_ARCH_IMX8M) += \
 	imx8mp-ddr4-evk.dtb \
 	imx8mp-evk.dtb \
 	imx8mp-phyboard-pollux-rdk.dtb \
-	imx8mq-pico-pi.dtb \
-	imx8mm-ddr4-ab2.dtb \
-	imx8mm-ab2.dtb \
-	imx8mn-ddr4-ab2.dtb \
-	imx8mn-ddr3l-ab2.dtb \
-	imx8mn-ab2.dtb
+	imx8mq-pico-pi.dtb
 
 dtb-$(CONFIG_ARCH_IMXRT) += imxrt1050-evk.dtb \
 	imxrt1020-evk.dtb
-dtb-$(CONFIG_ARCH_IMX8ULP) += imx8ulp-evk.dtb \
-	imx8ulp-evk-i3c.dtb \
-	imx8ulp-9x9-evk.dtb \
-	imx8ulp-9x9-evk-i3c.dtb
 
 dtb-$(CONFIG_RCAR_GEN2) += \
 	r8a7790-lager-u-boot.dtb \

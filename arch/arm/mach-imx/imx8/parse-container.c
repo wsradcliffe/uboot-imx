@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0+
 /*
- * Copyright 2018-2021 NXP
+ * Copyright 2018-2019 NXP
  */
 
 #include <common.h>
@@ -8,9 +8,67 @@
 #include <errno.h>
 #include <log.h>
 #include <spl.h>
-#include <asm/mach-imx/image.h>
+#include <asm/arch/image.h>
+#include <asm/arch/sci/sci.h>
+
+#define SEC_SECURE_RAM_BASE		0x31800000UL
+#define SEC_SECURE_RAM_END_BASE		(SEC_SECURE_RAM_BASE + 0xFFFFUL)
+#define SECO_LOCAL_SEC_SEC_SECURE_RAM_BASE	0x60000000UL
+
+#define SECO_PT         2U
+
 #ifdef CONFIG_AHAB_BOOT
-#include <asm/mach-imx/ahab.h>
+static int authenticate_image(struct boot_img_t *img, int image_index)
+{
+	sc_faddr_t start, end;
+	sc_rm_mr_t mr;
+	int err;
+	int ret = 0;
+
+	debug("img %d, dst 0x%x, src 0x%x, size 0x%x\n",
+	      image_index, (uint32_t)img->dst, img->offset, img->size);
+
+	/* Find the memreg and set permission for seco pt */
+	err = sc_rm_find_memreg(-1, &mr,
+				img->dst & ~(CONFIG_SYS_CACHELINE_SIZE - 1),
+				ALIGN(img->dst + img->size, CONFIG_SYS_CACHELINE_SIZE) - 1);
+
+	if (err) {
+		printf("can't find memreg for image %d load address 0x%x, error %d\n",
+		       image_index, img->dst & ~(CONFIG_SYS_CACHELINE_SIZE - 1), err);
+		return -ENOMEM;
+	}
+
+	err = sc_rm_get_memreg_info(-1, mr, &start, &end);
+	if (!err)
+		debug("memreg %u 0x%x -- 0x%x\n", mr, start, end);
+
+	err = sc_rm_set_memreg_permissions(-1, mr,
+					   SECO_PT, SC_RM_PERM_FULL);
+	if (err) {
+		printf("set permission failed for img %d, error %d\n",
+		       image_index, err);
+		return -EPERM;
+	}
+
+	err = sc_seco_authenticate(-1, SC_SECO_VERIFY_IMAGE,
+				   1 << image_index);
+	if (err) {
+		printf("authenticate img %d failed, return %d\n",
+		       image_index, err);
+		ret = -EIO;
+	}
+
+	err = sc_rm_set_memreg_permissions(-1, mr,
+					   SECO_PT, SC_RM_PERM_NONE);
+	if (err) {
+		printf("remove permission failed for img %d, error %d\n",
+		       image_index, err);
+		ret = -EPERM;
+	}
+
+	return ret;
+}
 #endif
 
 static struct boot_img_t *read_auth_image(struct spl_image_info *spl_image,
@@ -51,8 +109,10 @@ static struct boot_img_t *read_auth_image(struct spl_image_info *spl_image,
 	}
 
 #ifdef CONFIG_AHAB_BOOT
-	if (ahab_verify_cntr_image(&images[image_index], image_index))
+	if (authenticate_image(&images[image_index], image_index)) {
+		printf("Failed to authenticate image %d\n", image_index);
 		return NULL;
+	}
 #endif
 
 	return &images[image_index];
@@ -118,9 +178,15 @@ static int read_auth_container(struct spl_image_info *spl_image,
 	}
 
 #ifdef CONFIG_AHAB_BOOT
-	ret = ahab_auth_cntr_hdr(container, length);
-	if (ret)
+	memcpy((void *)SEC_SECURE_RAM_BASE, (const void *)container,
+	       ALIGN(length, CONFIG_SYS_CACHELINE_SIZE));
+
+	ret = sc_seco_authenticate(-1, SC_SECO_AUTH_CONTAINER,
+				   SECO_LOCAL_SEC_SEC_SECURE_RAM_BASE);
+	if (ret) {
+		printf("authenticate container hdr failed, return %d\n", ret);
 		goto end;
+	}
 #endif
 
 	for (i = 0; i < container->num_images; i++) {
@@ -147,7 +213,8 @@ static int read_auth_container(struct spl_image_info *spl_image,
 
 end_auth:
 #ifdef CONFIG_AHAB_BOOT
-	ahab_auth_release();
+	if (sc_seco_authenticate(-1, SC_SECO_REL_CONTAINER, 0))
+		printf("Error: release container failed!\n");
 #endif
 
 end:

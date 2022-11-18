@@ -21,12 +21,10 @@
  * @src:	- Address of data to be decapsulated
  * @dst:	- Address of data to be decapsulated
  * @len:	- Size of data to be decapsulated
- * @keycolor    - Determines if the source data is covered (black key) or
- *                plaintext.
  *
  * Returns zero on success,and negative on error.
  */
-__weak int blob_decap(u8 *key_mod, u8 *src, u8 *dst, u32 len, u8 keycolor)
+__weak int blob_decap(u8 *key_mod, u8 *src, u8 *dst, u32 len)
 {
 	return 0;
 }
@@ -37,12 +35,10 @@ __weak int blob_decap(u8 *key_mod, u8 *src, u8 *dst, u32 len, u8 keycolor)
  * @src:	- Address of data to be encapsulated
  * @dst:	- Address of data to be encapsulated
  * @len:	- Size of data to be encapsulated
- * @keycolor    - Determines if the source data is covered (black key) or
- *                plaintext.
  *
  * Returns zero on success,and negative on error.
  */
-__weak int blob_encap(u8 *key_mod, u8 *src, u8 *dst, u32 len, u8 keycolor)
+__weak int blob_encap(u8 *key_mod, u8 *src, u8 *dst, u32 len)
 {
 	return 0;
 }
@@ -95,9 +91,9 @@ static int do_blob(struct cmd_tbl *cmdtp, int flag, int argc,
 #endif
 
 	if (enc)
-		ret = blob_encap(km_ptr, src_ptr, dst_ptr, len, 0);
+		ret = blob_encap(km_ptr, src_ptr, dst_ptr, len);
 	else
-		ret = blob_decap(km_ptr, src_ptr, dst_ptr, len, 0);
+		ret = blob_decap(km_ptr, src_ptr, dst_ptr, len);
 
 	return ret;
 }

@@ -12,7 +12,6 @@ endif
 ifeq ($(SOC),$(filter $(SOC),imx8m))
 ifneq ($(CONFIG_SPL_BUILD),y)
 obj-$(CONFIG_IMX_BOOTAUX) += imx_bootaux.o
-obj-$(CONFIG_CMD_PROVISION_KEY) += cmd_prov_key.o
 endif
 obj-y += mmc_env.o
 obj-$(CONFIG_FEC_MXC) += mac.o
@@ -30,12 +29,12 @@ endif
 obj-$(CONFIG_GPT_TIMER) += timer.o
 obj-$(CONFIG_SYS_I2C_MXC) += i2c-mxv7.o
 endif
-ifeq ($(SOC),$(filter $(SOC),mx7 mx6 mxs mx7ulp imx8m imx8 imxrt imx8ulp))
+ifeq ($(SOC),$(filter $(SOC),mx7 mx6 mxs mx7ulp imx8m imx8 imxrt))
 obj-y	+= misc.o
 obj-$(CONFIG_CMD_PRIBLOB) += priblob.o
 obj-$(CONFIG_SPL_BUILD)	+= spl.o
 endif
-ifeq ($(SOC),$(filter $(SOC),imx8m imx8 imx8ulp))
+ifeq ($(SOC),$(filter $(SOC),imx8m imx8))
 obj-y	+= dt_optee.o
 endif
 ifeq ($(SOC),$(filter $(SOC),mx7))
@@ -43,10 +42,8 @@ obj-y 	+= cpu.o
 obj-$(CONFIG_SYS_I2C_MXC) += i2c-mxv7.o
 obj-y += mmc_env.o
 endif
-ifeq ($(SOC),$(filter $(SOC),mx7 imx8 imx8m))
-ifneq ($(CONFIG_SPL_BUILD),y)
+ifeq ($(SOC),$(filter $(SOC),mx7 imx8))
 obj-$(CONFIG_FSL_MFGPROT) += cmd_mfgprot.o
-endif
 endif
 ifeq ($(SOC),$(filter $(SOC),mx5 mx6 mx7))
 obj-$(CONFIG_IMX_VIDEO_SKIP) += video.o
@@ -83,10 +80,6 @@ obj-$(CONFIG_CMD_DEKBLOB) += cmd_dek.o
 obj-$(CONFIG_CMD_NANDBCB) += cmd_nandbcb.o
 obj-$(CONFIG_CMD_QSPIHDR) += cmd_qspihdr.o
 obj-$(CONFIG_IMX_VSERVICE) += imx_vservice.o
-endif
-
-ifeq ($(CONFIG_SPL_BUILD),y)
-obj-$(CONFIG_SPL_LOAD_IMX_CONTAINER) += image-container.o parse-container.o
 endif
 
 PLUGIN = board/$(BOARDDIR)/plugin
@@ -288,7 +281,6 @@ obj-$(CONFIG_MX5) += mx5/
 obj-$(CONFIG_MX6) += mx6/
 obj-$(CONFIG_MX7) += mx7/
 obj-$(CONFIG_ARCH_MX7ULP) += mx7ulp/
-obj-$(CONFIG_ARCH_IMX8ULP) += imx8ulp/
 obj-$(CONFIG_IMX8M) += imx8m/
 obj-$(CONFIG_ARCH_IMX8) += imx8/
 obj-$(CONFIG_ARCH_IMXRT) += imxrt/

@@ -48,12 +48,10 @@
 #define MXC_CPU_IMX8MP6		0x186 /* dummy ID */
 #define MXC_CPU_IMX8MPL		0x187 /* dummy ID */
 #define MXC_CPU_IMX8MPD		0x188 /* dummy ID */
-#define MXC_CPU_IMX8MPUL	0x189 /* dummy ID */
 #define MXC_CPU_IMX8QXP_A0	0x90 /* dummy ID */
 #define MXC_CPU_IMX8QM		0x91 /* dummy ID */
 #define MXC_CPU_IMX8QXP		0x92 /* dummy ID */
 #define MXC_CPU_IMX8DXL     0x9E /* dummy ID */
-#define MXC_CPU_IMX8ULP		0xA1 /* dummy ID */
 #define MXC_CPU_MX7ULP		0xE1 /* Temporally hard code */
 #define MXC_CPU_VF610		0xF6 /* dummy ID */
 

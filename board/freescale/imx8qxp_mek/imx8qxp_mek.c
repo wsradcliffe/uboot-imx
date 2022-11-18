@@ -282,11 +282,7 @@ static void setup_typec(void)
 	/* Enable SS MUX */
 	dm_gpio_set_dir_flags(&typec_en_desc, GPIOD_IS_OUT | GPIOD_IS_OUT_ACTIVE);
 
-	ret = tcpc_init(&port, port_config, &ss_mux_select);
-	if (ret) {
-		printf("%s: tcpc init failed, err=%d\n", __func__, ret);
-		return;
-	}
+	tcpc_init(&port, port_config, &ss_mux_select);
 }
 #endif
 

@@ -3,7 +3,7 @@
  * Aquantia PHY drivers
  *
  * Copyright 2014 Freescale Semiconductor, Inc.
- * Copyright 2018, 2021 NXP
+ * Copyright 2018 NXP
  */
 #include <config.h>
 #include <common.h>
@@ -554,9 +554,8 @@ int aquantia_config(struct phy_device *phydev)
 
 int aquantia_startup(struct phy_device *phydev)
 {
-	u32 speed;
+	u32 reg, speed;
 	int i = 0;
-	int reg;
 
 	phydev->duplex = DUPLEX_FULL;
 

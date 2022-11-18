@@ -62,7 +62,7 @@ static ulong bootloader_mmc_offset(void)
 		else
 		/* target device is SD card, bootloader offset is 0x8000 */
 			return 0x8000;
-	} else if (is_imx8mn() || is_imx8mp() || is_imx8dxl() || is_imx8ulp()) {
+	} else if (is_imx8mn() || is_imx8mp() || is_imx8dxl()) {
 		/* target device is eMMC boot0 partition, bootloader offset is 0x0 */
 		if (env_get_ulong("emmc_dev", 10, 2) == fastboot_devinfo.dev_id)
 			return 0;
@@ -142,8 +142,6 @@ static int _fastboot_parts_load_from_ptable(void)
 	int boot_partition = FASTBOOT_MMC_NONE_PARTITION_ID;
 	int user_partition = FASTBOOT_MMC_NONE_PARTITION_ID;
 
-	unsigned long boot_loader_psize = ANDROID_BOOTLOADER_SIZE;
-
 	struct mmc *mmc;
 	struct blk_desc *dev_desc;
 	struct fastboot_ptentry ptable[MAX_PTN];
@@ -186,7 +184,6 @@ static int _fastboot_parts_load_from_ptable(void)
 		if (mmc->part_config != MMCPART_NOAVAILABLE) {
 			boot_partition = FASTBOOT_MMC_BOOT_PARTITION_ID;
 			user_partition = FASTBOOT_MMC_USER_PARTITION_ID;
-			boot_loader_psize = mmc->capacity_boot;
 		}
 	} else {
 		printf("Can't setup partition table on this device %d\n",
@@ -217,7 +214,7 @@ static int _fastboot_parts_load_from_ptable(void)
 #ifdef CONFIG_FLASH_MCUFIRMWARE_SUPPORT
 	strcpy(ptable[PTN_MCU_OS_INDEX].name, FASTBOOT_MCU_FIRMWARE_PARTITION);
 	ptable[PTN_MCU_OS_INDEX].start = ANDROID_MCU_FIRMWARE_START / dev_desc->blksz;
-	ptable[PTN_MCU_OS_INDEX].length = ANDROID_MCU_OS_PARTITION_SIZE / dev_desc->blksz;
+	ptable[PTN_MCU_OS_INDEX].length = ANDROID_MCU_FIRMWARE_SIZE / dev_desc->blksz;
 	ptable[PTN_MCU_OS_INDEX].flags = FASTBOOT_PTENTRY_FLAGS_UNERASEABLE;
 	ptable[PTN_MCU_OS_INDEX].partition_id = user_partition;
 	strcpy(ptable[PTN_MCU_OS_INDEX].fstype, "raw");
@@ -234,8 +231,7 @@ static int _fastboot_parts_load_from_ptable(void)
 	ptable[PTN_BOOTLOADER_INDEX].start =
 				bootloader_mmc_offset() / dev_desc->blksz;
 	ptable[PTN_BOOTLOADER_INDEX].length =
-				 boot_loader_psize / dev_desc->blksz;
-
+				 ANDROID_BOOTLOADER_SIZE / dev_desc->blksz;
 	ptable[PTN_BOOTLOADER_INDEX].partition_id = boot_partition;
 	ptable[PTN_BOOTLOADER_INDEX].flags = FASTBOOT_PTENTRY_FLAGS_UNERASEABLE;
 	strcpy(ptable[PTN_BOOTLOADER_INDEX].fstype, "raw");

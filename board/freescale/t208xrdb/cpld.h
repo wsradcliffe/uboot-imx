@@ -1,7 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0+ */
 /*
  * Copyright 2014 Freescale Semiconductor
- * Copyright 2021 NXP
  */
 
 /*
@@ -43,6 +42,3 @@ void cpld_write(unsigned int reg, u8 value);
 
 /* RSTCON Register */
 #define CPLD_RSTCON_EDC_RST	0x04
-
-/* MISCCSR Register */
-#define CPLD_MISC_POR_EN	0x30

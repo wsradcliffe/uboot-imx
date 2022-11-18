@@ -581,120 +581,23 @@ end:
     return rc;
 }
 
-char *get_serial(void);
-int trusty_set_attestation_id(void)
+int trusty_append_attestation_id(const char *data, uint32_t data_size)
 {
-    uint8_t *req = NULL, *tmp = NULL;
-    uint32_t req_size = 0;
-    char *serial = NULL;
-    int rc;
-
-    req = trusty_calloc(1024, 1); // 1024 bytes buffer should be enough.
-    tmp = req;
-
-    /* fill in the device ids */
-    /* brand */
-    rc = km_attestation_id_data_serialize((uint8_t *)CONFIG_ATTESTATION_ID_BRAND,
-                                          strlen(CONFIG_ATTESTATION_ID_BRAND),
-                                          &tmp, &req_size);
-    if (rc < 0) {
-	trusty_error("%s: failed (%d) to set id brand.\n", __func__, rc);
-        goto end;
-    }
-
-    /* device */
-    rc = km_attestation_id_data_serialize((uint8_t *)CONFIG_ATTESTATION_ID_DEVICE,
-                                          strlen(CONFIG_ATTESTATION_ID_DEVICE),
-                                          &tmp, &req_size);
-    if (rc < 0) {
-	trusty_error("%s: failed (%d) to set id device.\n", __func__, rc);
-        goto end;
-    }
-
-    /* product */
-    rc = km_attestation_id_data_serialize((uint8_t *)CONFIG_ATTESTATION_ID_PRODUCT,
-                                          strlen(CONFIG_ATTESTATION_ID_PRODUCT),
-                                          &tmp, &req_size);
-    if (rc < 0) {
-	trusty_error("%s: failed (%d) to set id product.\n", __func__, rc);
-        goto end;
-    }
-
-    /* serial number, bail out when fail because it's a MUST. */
-    serial = get_serial();
-    if (serial != NULL) {
-        rc = km_attestation_id_data_serialize((uint8_t *)serial, 16, &tmp, &req_size);
-        if (rc < 0) {
-	    trusty_error("%s: failed (%d) to set id serial.\n", __func__, rc);
-            goto end;
-        }
-    } else {
-        trusty_error("%s: failed to get serial number.\n", __func__);
-        goto end;
-    }
-
-    /* IMEI */
-    rc = km_attestation_id_data_serialize((uint8_t *)CONFIG_ATTESTATION_ID_IMEI,
-                                          strlen(CONFIG_ATTESTATION_ID_IMEI),
-                                          &tmp, &req_size);
-    if (rc < 0) {
-	trusty_error("%s: failed (%d) to set id IMEI.\n", __func__, rc);
-        goto end;
-    }
-
-    /* MEID */
-    rc = km_attestation_id_data_serialize((uint8_t *)CONFIG_ATTESTATION_ID_MEID,
-                                          strlen(CONFIG_ATTESTATION_ID_MEID),
-                                          &tmp, &req_size);
-    if (rc < 0) {
-	trusty_error("%s: failed (%d) to set id MEID.\n", __func__, rc);
-        goto end;
-    }
-
-    /* manufacturer */
-    rc = km_attestation_id_data_serialize((uint8_t *)CONFIG_ATTESTATION_ID_MANUFACTURER,
-                                          strlen(CONFIG_ATTESTATION_ID_MANUFACTURER),
-                                          &tmp, &req_size);
-    if (rc < 0) {
-	trusty_error("%s: failed (%d) to set id manufacturer.\n", __func__, rc);
-        goto end;
-    }
-
-    /* model */
-    rc = km_attestation_id_data_serialize((uint8_t *)CONFIG_ATTESTATION_ID_MODEL,
-                                          strlen(CONFIG_ATTESTATION_ID_MODEL),
-                                          &tmp, &req_size);
-    if (rc < 0) {
-	trusty_error("%s: failed (%d) to set id model.\n", __func__, rc);
-        goto end;
-    }
-
-    rc = km_do_tipc(KM_SET_ATTESTATION_IDS, req, req_size, NULL, NULL);
-
-end:
-    if (req) {
-        trusty_free(req);
-    }
-    return rc;
-}
-
-int trusty_set_boot_patch_level(uint32_t boot_patch_level)
-{
-    if (!initialized) {
-        trusty_error("Keymaster TIPC client not initialized!\n");
-        return -1;
-    }
-
+    struct km_attestation_id_data attestation_id_data = {
+        .data_size = data_size,
+        .data = (uint8_t *)data,
+    };
     uint8_t *req = NULL;
     uint32_t req_size = 0;
-    int rc;
+    int rc = km_attestation_id_data_serialize(&attestation_id_data, &req, &req_size);
 
-    req = trusty_calloc(4, 1); // 4 bytes should be enough.
-    memcpy(req, &boot_patch_level, sizeof(uint32_t));
-    req_size = sizeof(uint32_t);
+    if (rc < 0) {
+        trusty_error("failed (%d) to serialize request\n", rc);
+        goto end;
+    }
+    rc = km_do_tipc(KM_APPEND_ATTESTATION_ID, req, req_size, NULL, NULL);
 
-    rc = km_do_tipc(KM_CONFIGURE_BOOT_PATCHLEVEL, req, req_size, NULL, NULL);
-
+end:
     if (req) {
         trusty_free(req);
     }

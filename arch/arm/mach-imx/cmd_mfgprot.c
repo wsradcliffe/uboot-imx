@@ -10,7 +10,7 @@
 
 #include <command.h>
 #include <common.h>
-#include <env.h>
+#include <environment.h>
 #include <mapmem.h>
 #include <memalign.h>
 #ifdef CONFIG_IMX_CAAM_MFG_PROT
@@ -21,6 +21,8 @@
 #include <asm/io.h>
 #include <asm/arch/sci/sci.h>
 #endif
+
+DECLARE_GLOBAL_DATA_PTR;
 
 /**
  * do_mfgprot() - Handle the "mfgprot" command-line command

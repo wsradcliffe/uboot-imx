@@ -87,8 +87,8 @@
 		status = "okay";
 	};
 
-	rm67199_panel {
-		compatible = "raydium,rm67199";
+	rm67191_panel {
+		compatible = "raydium,rm67191";
 		pinctrl-names = "default";
 		pinctrl-0 = <&pinctrl_mipi_dsi_en>;
 		reset-gpio = <&gpio1 8 GPIO_ACTIVE_LOW>;
@@ -170,7 +170,6 @@
 	pinctrl-1 = <&pinctrl_i2c1_gpio>;
 	scl-gpios = <&gpio5 14 GPIO_ACTIVE_HIGH>;
 	sda-gpios = <&gpio5 15 GPIO_ACTIVE_HIGH>;
-	status = "okay";
 
 	pmic: pca9450@25 {
 		reg = <0x25>;

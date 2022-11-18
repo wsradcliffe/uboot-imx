@@ -7,7 +7,6 @@
  */
 
 #include <common.h>
-#include <cpu_func.h>
 #include <errno.h>
 #include <fsl_sec.h>
 #include <memalign.h>
@@ -96,7 +95,7 @@ int gen_mppubk(u8 *dst)
 	flush_dcache_range((unsigned long)dst, (unsigned long)dst + size);
 
 	/* Execute Job Descriptor */
-	debug("\nGenerating Manufacturing Protection Public Key\n");
+	puts("\nGenerating Manufacturing Protection Public Key\n");
 
 	ret = run_descriptor_jr(dsc);
 	if (ret) {

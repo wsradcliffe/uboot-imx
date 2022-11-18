@@ -289,10 +289,9 @@ static char *rsn_str[] = {
 };
 
 static char *sts_str[] = {
-			  "STS = HAB_STS_ANY (0x00)\n",
+			  "STS = HAB_SUCCESS (0xF0)\n",
 			  "STS = HAB_FAILURE (0x33)\n",
 			  "STS = HAB_WARNING (0x69)\n",
-			  "STS = HAB_SUCCESS (0xF0)\n",
 			  "STS = INVALID\n",
 			  NULL
 };
@@ -337,7 +336,8 @@ static uint8_t hab_statuses[5] = {
 	HAB_STS_ANY,
 	HAB_FAILURE,
 	HAB_WARNING,
-	HAB_SUCCESS
+	HAB_SUCCESS,
+	-1
 };
 
 static uint8_t hab_reasons[26] = {
@@ -365,7 +365,8 @@ static uint8_t hab_reasons[26] = {
 	HAB_UNS_ITEM,
 	HAB_UNS_KEY,
 	HAB_UNS_PROTOCOL,
-	HAB_UNS_STATE
+	HAB_UNS_STATE,
+	-1
 };
 
 static uint8_t hab_contexts[12] = {
@@ -379,7 +380,8 @@ static uint8_t hab_contexts[12] = {
 	HAB_CTX_COMMAND,
 	HAB_CTX_AUT_DAT,
 	HAB_CTX_ASSERT,
-	HAB_CTX_EXIT
+	HAB_CTX_EXIT,
+	-1
 };
 
 static uint8_t hab_engines[16] = {
@@ -397,34 +399,30 @@ static uint8_t hab_engines[16] = {
 	HAB_ENG_ROM,
 	HAB_ENG_HDCP,
 	HAB_ENG_RTL,
-	HAB_ENG_SW
+	HAB_ENG_SW,
+	-1
 };
 
-static inline uint32_t get_idx(uint8_t *list, uint8_t tgt, uint32_t size)
+static inline uint8_t get_idx(uint8_t *list, uint8_t tgt)
 {
-	uint32_t idx = 0;
-	uint8_t element;
-	while (idx < size) {
-		element = list[idx];
+	uint8_t idx = 0;
+	uint8_t element = list[idx];
+	while (element != -1) {
 		if (element == tgt)
 			return idx;
-		++idx;
+		element = list[++idx];
 	}
-	return idx;
+	return -1;
 }
 
 static void process_event_record(uint8_t *event_data, size_t bytes)
 {
 	struct record *rec = (struct record *)event_data;
 
-	printf("\n\n%s", sts_str[get_idx(hab_statuses, rec->contents[0],
-		ARRAY_SIZE(hab_statuses))]);
-	printf("%s", rsn_str[get_idx(hab_reasons, rec->contents[1],
-		ARRAY_SIZE(hab_reasons))]);
-	printf("%s", ctx_str[get_idx(hab_contexts, rec->contents[2],
-		ARRAY_SIZE(hab_contexts))]);
-	printf("%s", eng_str[get_idx(hab_engines, rec->contents[3],
-		ARRAY_SIZE(hab_engines))]);
+	printf("\n\n%s", sts_str[get_idx(hab_statuses, rec->contents[0])]);
+	printf("%s", rsn_str[get_idx(hab_reasons, rec->contents[1])]);
+	printf("%s", ctx_str[get_idx(hab_contexts, rec->contents[2])]);
+	printf("%s", eng_str[get_idx(hab_engines, rec->contents[3])]);
 }
 
 static void display_event(uint8_t *event_data, size_t bytes)
