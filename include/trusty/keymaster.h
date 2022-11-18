@@ -170,11 +170,13 @@ int trusty_verify_secure_unlock(uint8_t *unlock_credential,
                                 uint8_t *serial, uint32_t serial_size);
 
 /*
- * trusty_append_attestation_id is called to set attestation Device ID.
- *
- * @ data: Device ID string
- * @ data_size: Device ID size
+ * trusty_set_attestation_id is called to set attestation Device ID.
  * */
-int trusty_append_attestation_id(const char *data, uint32_t data_size);
+int trusty_set_attestation_id(void);
+
+/*
+ * trusty_set_boot_patch_level is called to set the boot patch level.
+ * */
+int trusty_set_boot_patch_level(uint32_t boot_patch_level);
 
 #endif /* TRUSTY_KEYMASTER_H_ */

@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0+ */
 /*
- * Copyright 2017, 2019-2020 NXP
+ * Copyright 2017-2021 NXP
  * Copyright 2015 Freescale Semiconductor
  */
 
@@ -319,11 +319,11 @@ unsigned long get_board_sys_clk(void);
 	"env exists secureboot && "			\
 	"esbc_validate 0x80640000 && "			\
 	"esbc_validate 0x80680000; "			\
-	"sf read 0x80a00000 0xa00000 0x300000; "	\
+	"sf read 0x80a00000 0xa00000 0x200000; "	\
 	"sf read 0x80e00000 0xe00000 0x100000; "	\
 	"fsl_mc start mc 0x80a00000 0x80e00000 \0"
 #define SD_MC_INIT_CMD				\
-	"mmcinfo;mmc read 0x80a00000 0x5000 0x1200;" \
+	"mmcinfo;mmc read 0x80a00000 0x5000 0x1000;" \
 	"mmc read 0x80e00000 0x7000 0x800;"	\
 	"env exists secureboot && "		\
 	"mmc read 0x80640000 0x3200 0x20 && "	\
@@ -344,19 +344,19 @@ unsigned long get_board_sys_clk(void);
 	"env exists secureboot && "			\
 	"esbc_validate 0x80640000 && "			\
 	"esbc_validate 0x80680000; "			\
-	"sf read 0x80a00000 0xa00000 0x300000; "	\
+	"sf read 0x80a00000 0xa00000 0x200000; "	\
 	"sf read 0x80e00000 0xe00000 0x100000; "	\
 	"fsl_mc start mc 0x80a00000 0x80e00000 \0"
 #elif defined(CONFIG_SD_BOOT)
 #define MC_INIT_CMD                             \
-	"mcinitcmd=mmcinfo;mmc read 0x80000000 0x5000 0x800;" \
-	"mmc read 0x80100000 0x7000 0x800;"	\
+	"mcinitcmd=mmcinfo;mmc read 0x80a00000 0x5000 0x1000;" \
+	"mmc read 0x80e00000 0x7000 0x800;"	\
 	"env exists secureboot && "		\
 	"mmc read 0x80640000 0x3200 0x20 && "	\
 	"mmc read 0x80680000 0x3400 0x20 && "	\
 	"esbc_validate 0x80640000 && "		\
 	"esbc_validate 0x80680000 ;"		\
-	"fsl_mc start mc 0x80000000 0x80100000\0" \
+	"fsl_mc start mc 0x80a00000 0x80e00000\0" \
 	"mcmemsize=0x70000000\0"
 #else
 #define MC_INIT_CMD				\
@@ -376,7 +376,6 @@ unsigned long get_board_sys_clk(void);
 	"ramdisk_size=0x2000000\0"		\
 	"fdt_high=0xa0000000\0"			\
 	"initrd_high=0xffffffffffffffff\0"	\
-	"fdt_addr=0x64f00000\0"			\
 	"kernel_addr=0x581000000\0"		\
 	"kernel_start=0x1000000\0"		\
 	"kernelheader_start=0x800000\0"		\
@@ -388,6 +387,7 @@ unsigned long get_board_sys_clk(void);
 	"kernel_addr_r=0x81000000\0"		\
 	"kernelheader_size=0x40000\0"		\
 	"fdt_addr_r=0x90000000\0"		\
+	"fdt_addr=0x90000000\0"                 \
 	"load_addr=0xa0000000\0"		\
 	"kernel_size=0x2800000\0"		\
 	"kernel_addr_sd=0x8000\0"		\
@@ -439,7 +439,6 @@ unsigned long get_board_sys_clk(void);
 	"ramdisk_size=0x2000000\0"		\
 	"fdt_high=0xa0000000\0"			\
 	"initrd_high=0xffffffffffffffff\0"	\
-	"fdt_addr=0x64f00000\0"			\
 	"kernel_addr=0x581000000\0"		\
 	"kernel_start=0x1000000\0"		\
 	"kernelheader_start=0x600000\0"		\
@@ -451,6 +450,7 @@ unsigned long get_board_sys_clk(void);
 	"kernel_addr_r=0x81000000\0"		\
 	"kernelheader_size=0x40000\0"		\
 	"fdt_addr_r=0x90000000\0"		\
+	"fdt_addr=0x90000000\0"                 \
 	"load_addr=0xa0000000\0"		\
 	"kernel_size=0x2800000\0"		\
 	"kernel_addr_sd=0x8000\0"		\

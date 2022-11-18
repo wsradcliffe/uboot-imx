@@ -44,9 +44,17 @@ struct udevice *caam_dev;
 #define SEC_ADDR(idx)	\
 	(ulong)((CONFIG_SYS_FSL_SEC_ADDR + sec_offset[idx]))
 
-#define SEC_JR0_ADDR(idx)	\
+#ifndef CONFIG_IMX8M
+#define SEC_JR_ADDR(idx)	\
 	(ulong)(SEC_ADDR(idx) +	\
 	 (CONFIG_SYS_FSL_JR0_OFFSET - CONFIG_SYS_FSL_SEC_OFFSET))
+#define JR_ID 0
+#else
+#define SEC_JR_ADDR(idx)	\
+	(ulong)(SEC_ADDR(idx) + \
+	 (CONFIG_SYS_FSL_JR1_OFFSET - CONFIG_SYS_FSL_SEC_OFFSET))
+#define JR_ID 1
+#endif
 struct caam_regs caam_st;
 #endif
 
@@ -589,7 +597,7 @@ static u8 get_rng_vid(ccsr_sec_t *sec)
 }
 
 #if defined(CONFIG_ARCH_IMX8M) || defined(CONFIG_ARCH_MX7ULP) || \
-	defined(CONFIG_ARCH_MX6) || defined (CONFIG_ARCH_MX7)
+	defined(CONFIG_ARCH_MX6) || defined(CONFIG_ARCH_MX7) || defined(CONFIG_ARCH_IMX8ULP)
 
 static void kick_trng(u32 ent_delay, ccsr_sec_t *sec)
 {
@@ -732,7 +740,7 @@ static void kick_trng(int ent_delay, ccsr_sec_t *sec)
 
 static int rng_init(uint8_t sec_idx, ccsr_sec_t *sec)
 {
-	int ret, gen_sk, ent_delay = RTSDCTL_ENT_DLY_MIN;
+	int ret, gen_sk, ent_delay = RTSDCTL_ENT_DLY;
 	struct rng4tst __iomem *rng =
 			(struct rng4tst __iomem *)&sec->rng;
 	u32 inst_handles;
@@ -761,6 +769,15 @@ static int rng_init(uint8_t sec_idx, ccsr_sec_t *sec)
 		 * the RNG.
 		 */
 		ret = instantiate_rng(sec_idx, sec, gen_sk);
+		/*
+		 * entropy delay is calculated via self-test method.
+		 * self-test are run across different volatge, temp.
+		 * if worst case value for ent_dly is identified,
+		 * loop can be skipped for that platform.
+		 */
+		if (IS_ENABLED(CONFIG_MX6SX))
+			break;
+
 	} while ((ret == -1) && (ent_delay < RTSDCTL_ENT_DLY_MAX));
 	if (ret) {
 		printf("SEC%u:  Failed to instantiate RNG\n", sec_idx);
@@ -779,17 +796,21 @@ int sec_init_idx(uint8_t sec_idx)
 	int ret = 0;
 	struct caam_regs *caam;
 #if CONFIG_IS_ENABLED(DM)
+	if (caam_dev == NULL) {
+		printf("caam_jr: caam not found\n");
+		return -1;
+	}
 	caam = dev_get_priv(caam_dev);
 #else
 	caam_st.sec = (void *)SEC_ADDR(sec_idx);
-	caam_st.regs = (struct jr_regs *)SEC_JR0_ADDR(sec_idx);
-	caam_st.jrid = 0;
+	caam_st.regs = (struct jr_regs *)SEC_JR_ADDR(sec_idx);
+	caam_st.jrid = JR_ID;
 	caam = &caam_st;
 #endif
 #ifndef CONFIG_ARCH_IMX8
 	ccsr_sec_t *sec = caam->sec;
 	uint32_t mcr = sec_in32(&sec->mcfgr);
-#if defined(CONFIG_SPL_BUILD) && defined(CONFIG_IMX8M)
+#if defined(CONFIG_SPL_BUILD) && (defined(CONFIG_IMX8M) || defined(CONFIG_IMX8ULP))
 	uint32_t jrdid_ms = 0;
 #endif
 #ifdef CONFIG_FSL_CORENET
@@ -821,11 +842,14 @@ int sec_init_idx(uint8_t sec_idx)
 	mcr |= (1 << MCFGR_PS_SHIFT);
 #endif
 	sec_out32(&sec->mcfgr, mcr);
-	jr_reset();
-#if defined(CONFIG_SPL_BUILD) && defined(CONFIG_IMX8M)
+#ifdef CONFIG_IMX8ULP
+	sec_reset();
+#endif
+#if defined(CONFIG_SPL_BUILD) && (defined(CONFIG_IMX8M) || defined(CONFIG_IMX8ULP))
 	jrdid_ms = JRDID_MS_TZ_OWN | JRDID_MS_PRIM_TZ | JRDID_MS_PRIM_DID;
 	sec_out32(&sec->jrliodnr[caam->jrid].ms, jrdid_ms);
 #endif
+	jr_reset();
 
 #ifdef CONFIG_FSL_CORENET
 #ifdef CONFIG_SPL_BUILD
@@ -865,22 +889,24 @@ int sec_init_idx(uint8_t sec_idx)
 	pamu_enable();
 #endif
 
+#ifdef CONFIG_RNG_SELF_TEST
+	rng_self_test();
+#endif
 	if (get_rng_vid(caam->sec) >= 4) {
 		if (rng_init(sec_idx, caam->sec) < 0) {
 			printf("SEC%u:  RNG instantiation failed\n", sec_idx);
 			return -1;
 		}
 
-		if (IS_ENABLED(CONFIG_DM_RNG)) {
-			ret = device_bind_driver(NULL, "caam-rng", "caam-rng",
-						 NULL);
-			if (ret)
-				printf("Couldn't bind rng driver (%d)\n", ret);
-		}
-
 		printf("SEC%u:  RNG instantiated\n", sec_idx);
 	}
 #endif
+	if (IS_ENABLED(CONFIG_DM_RNG)) {
+		ret = device_bind_driver(NULL, "caam-rng", "caam-rng", NULL);
+		if (ret)
+			printf("Couldn't bind rng driver (%d)\n", ret);
+	}
+
 	return ret;
 }
 

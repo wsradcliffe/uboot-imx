@@ -311,7 +311,7 @@ int rpmb_read(struct mmc *mmc, uint8_t *buffer, size_t num_bytes, int64_t offset
 	if (!strcmp(kp.magic, KEYPACK_MAGIC)) {
 		/* Use the key from keyslot. */
 		memcpy(blob, kp.rpmb_keyblob, RPMBKEY_BLOB_LEN);
-		if (blob_decap(keymod, blob, extract_key, RPMBKEY_LENGTH)) {
+		if (blob_decap(keymod, blob, extract_key, RPMBKEY_LENGTH, 0)) {
 			ERR("decap rpmb key error\n");
 			ret = -1;
 			goto fail;
@@ -420,7 +420,7 @@ int rpmb_write(struct mmc *mmc, uint8_t *buffer, size_t num_bytes, int64_t offse
 	if (!strcmp(kp.magic, KEYPACK_MAGIC)) {
 		/* Use the key from keyslot. */
 		memcpy(blob, kp.rpmb_keyblob, RPMBKEY_BLOB_LEN);
-		if (blob_decap(keymod, blob, extract_key, RPMBKEY_LENGTH)) {
+		if (blob_decap(keymod, blob, extract_key, RPMBKEY_LENGTH, 0)) {
 			ERR("decap rpmb key error\n");
 			ret = -1;
 			goto fail;
@@ -663,7 +663,7 @@ int gen_rpmb_key(struct keyslot_package *kp) {
 	keymod = (uint8_t *)memalign(ARCH_DMA_MINALIGN, sizeof(skeymod));
 	memcpy(keymod, skeymod, sizeof(skeymod));
 	/* generate keyblob and program to boot1 partition */
-	if (blob_encap(keymod, plain_key, kp->rpmb_keyblob, RPMBKEY_LENGTH)) {
+	if (blob_encap(keymod, plain_key, kp->rpmb_keyblob, RPMBKEY_LENGTH, 0)) {
 		ERR("gen rpmb key blb error\n");
 		goto fail;
 	}
@@ -1171,17 +1171,24 @@ extern struct imx_sec_config_fuse_t const imx_sec_config_fuse;
 bool hab_is_enabled(void)
 {
 #ifdef CONFIG_ARCH_IMX8
-	sc_err_t err;
+	int err;
 	uint16_t lc;
 
 	err = sc_seco_chip_info(-1, &lc, NULL, NULL, NULL);
-	if (err != SC_ERR_NONE) {
+	if (err) {
 		printf("Error in get lifecycle\n");
 		return false;
 	}
 
 	if (lc != 0x80)
-#else
+#elif CONFIG_IMX8ULP
+	uint32_t lc;
+
+	lc = readl(FSB_BASE_ADDR + 0x41c);
+	lc &= 0x3f;
+
+	if (lc != 0x20)
+#elif CONFIG_ARCH_IMX8M
 	struct imx_sec_config_fuse_t *fuse =
 		(struct imx_sec_config_fuse_t *)&imx_sec_config_fuse;
 	uint32_t reg;
@@ -1194,6 +1201,8 @@ bool hab_is_enabled(void)
 	}
 
 	if (!((reg & HAB_ENABLED_BIT) == HAB_ENABLED_BIT))
+#else
+		if (1)
 #endif
 		return false;
 	else
@@ -1327,6 +1336,7 @@ int avb_set_public_key(uint8_t *staged_buffer, uint32_t size) {
 	return 0;
 }
 
+#ifdef CONFIG_GENERATE_MPPUBK
 int fastboot_get_mppubk(uint8_t *staged_buffer, uint32_t *size) {
 
 	if (!hab_is_enabled()) {
@@ -1345,5 +1355,6 @@ int fastboot_get_mppubk(uint8_t *staged_buffer, uint32_t *size) {
 
 	return 0;
 }
+#endif /* CONFIG_GENERATE_MPPUBK */
 #endif /* CONFIG_IMX_TRUSTY_OS && !defind(CONFIG_AVB_ATX) */
 #endif /* CONFIG_SPL_BUILD */

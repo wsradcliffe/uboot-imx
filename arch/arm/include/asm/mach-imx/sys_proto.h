@@ -51,6 +51,7 @@ struct bd_info;
 #define is_imx8md() (is_cpu_type(MXC_CPU_IMX8MD))
 #define is_imx8mql() (is_cpu_type(MXC_CPU_IMX8MQL))
 #define is_imx8qm() (is_cpu_type(MXC_CPU_IMX8QM))
+#define is_imx8ulp() (is_cpu_type(MXC_CPU_IMX8ULP))
 #define is_imx8mm() (is_cpu_type(MXC_CPU_IMX8MM) || is_cpu_type(MXC_CPU_IMX8MML) ||\
 	is_cpu_type(MXC_CPU_IMX8MMD) || is_cpu_type(MXC_CPU_IMX8MMDL) || \
 	is_cpu_type(MXC_CPU_IMX8MMS) || is_cpu_type(MXC_CPU_IMX8MMSL))
@@ -72,10 +73,11 @@ struct bd_info;
 #define is_imx8mnud() (is_cpu_type(MXC_CPU_IMX8MNUD))
 #define is_imx8mnus() (is_cpu_type(MXC_CPU_IMX8MNUS))
 #define is_imx8mp() (is_cpu_type(MXC_CPU_IMX8MP)  || is_cpu_type(MXC_CPU_IMX8MPD) || \
-	is_cpu_type(MXC_CPU_IMX8MPL) || is_cpu_type(MXC_CPU_IMX8MP6))
+	is_cpu_type(MXC_CPU_IMX8MPL) || is_cpu_type(MXC_CPU_IMX8MP6) || is_cpu_type(MXC_CPU_IMX8MPUL))
 #define is_imx8mpd() (is_cpu_type(MXC_CPU_IMX8MPD))
 #define is_imx8mpl() (is_cpu_type(MXC_CPU_IMX8MPL))
 #define is_imx8mp6() (is_cpu_type(MXC_CPU_IMX8MP6))
+#define is_imx8mpul() (is_cpu_type(MXC_CPU_IMX8MPUL))
 
 #define is_imx8qxp() (is_cpu_type(MXC_CPU_IMX8QXP))
 #define is_imx8dxl() (is_cpu_type(MXC_CPU_IMX8DXL))
@@ -145,7 +147,7 @@ struct rproc_att {
 	u32 size; /* size of reg range */
 };
 
-#ifdef CONFIG_IMX8M
+#if defined(CONFIG_IMX8M) || defined(CONFIG_IMX8ULP)
 struct rom_api {
 	u16 ver;
 	u16 tag;
@@ -176,7 +178,20 @@ enum boot_dev_type_e {
 #define ROM_API_OKAY		0xF0
 
 extern struct rom_api *g_rom_api;
+
+ulong spl_romapi_raw_seekable_read(u32 offset, u32 size,
+                              void *buf);
 #endif
+
+/* For i.MX ULP */
+#define BT0CFG_LPBOOT_MASK	0x1
+#define BT0CFG_DUALBOOT_MASK	0x2
+
+enum bt_mode {
+	LOW_POWER_BOOT,		/* LP_BT = 1 */
+	DUAL_BOOT,		/* LP_BT = 0, DUAL_BT = 1 */
+	SINGLE_BOOT		/* LP_BT = 0, DUAL_BT = 0 */
+};
 
 u32 get_nr_cpus(void);
 u32 get_cpu_rev(void);

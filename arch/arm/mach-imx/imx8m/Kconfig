@@ -46,6 +46,14 @@ config IMX_UNIQUE_ID
 	depends on IMX8MQ && IMX_HAB && !SECURE_STICKY_BITS_LOCKUP
 	default 0x0
 
+config IMX8M_MCU_RDC_START_CONFIG_ADDR
+	hex "Start address of mcu rdc config when mcu starts"
+	default 0x186000
+
+config IMX8M_MCU_RDC_STOP_CONFIG_ADDR
+	hex "Start address of mcu rdc config when mcu stops"
+	default 0x187000
+
 choice
 	prompt  "NXP i.MX8M board select"
 	optional
@@ -187,6 +195,56 @@ config TARGET_IMX8MP_DDR4_EVK
 	select MISC
 	select SPL_CRYPTO_SUPPORT if SPL
 
+config TARGET_IMX8MM_AB2
+	bool "imx8mm LPDDR4 Audio board 2.0"
+	select IMX8MM
+	select SUPPORT_SPL
+	select IMX8M_LPDDR4
+	select FSL_CAAM
+	select FSL_BLOB
+	select MISC
+	select SPL_CRYPTO_SUPPORT if SPL
+
+config TARGET_IMX8MM_DDR4_AB2
+	bool "imx8mm DDR4 Audio board 2.0"
+	select IMX8MM
+	select SUPPORT_SPL
+	select IMX8M_DDR4
+	select FSL_CAAM
+	select FSL_BLOB
+	select MISC
+	select SPL_CRYPTO_SUPPORT if SPL
+
+config TARGET_IMX8MN_AB2
+	bool "imx8mn LPDDR4 Audio board 2.0"
+	select IMX8MN
+	select SUPPORT_SPL
+	select IMX8M_LPDDR4
+	select FSL_CAAM
+	select FSL_BLOB
+	select MISC
+	select SPL_CRYPTO_SUPPORT if SPL
+
+config TARGET_IMX8MN_DDR4_AB2
+	bool "imx8mn DDR4 Audio board 2.0"
+	select IMX8MN
+	select SUPPORT_SPL
+	select IMX8M_DDR4
+	select FSL_CAAM
+	select FSL_BLOB
+	select MISC
+	select SPL_CRYPTO_SUPPORT if SPL
+
+config TARGET_IMX8MN_DDR3L_AB2
+	bool "imx8mn DDR3L Audio board 2.0"
+	select IMX8MN
+	select SUPPORT_SPL
+	select IMX8M_DDR3L
+	select FSL_CAAM
+	select FSL_BLOB
+	select MISC
+	select SPL_CRYPTO_SUPPORT if SPL
+
 config TARGET_VERDIN_IMX8MM
        bool "Support Toradex Verdin iMX8M Mini module"
        select IMX8MM
@@ -220,6 +278,7 @@ endchoice
 
 source "board/freescale/imx8mq_evk/Kconfig"
 source "board/freescale/imx8mq_val/Kconfig"
+source "board/freescale/imx8mm_ab2/Kconfig"
 source "board/freescale/imx8mm_evk/Kconfig"
 source "board/freescale/imx8mm_val/Kconfig"
 source "board/freescale/imx8mn_evk/Kconfig"

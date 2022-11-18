@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0+
 /*
  * Copyright 2014 Freescale Semiconductor, Inc.
- *
+ * Copyright 2021 NXP
  */
 
 #include <common.h>
@@ -120,8 +120,8 @@ static int caam_hash_update(void *hash_ctx, const void *buf,
  * Perform progressive hashing on the given buffer and copy hash at
  * destination buffer
  *
- * The context is freed after completion of hash operation.
- *
+ * The context is freed after successful completion of hash operation.
+ * In case of failure, context is not freed.
  * @hash_ctx: Pointer to the context for hashing
  * @dest_buf: Pointer to the destination buffer where hash is to be copied
  * @size: Size of the buffer being hashed
@@ -136,7 +136,6 @@ static int caam_hash_finish(void *hash_ctx, void *dest_buf,
 	int i = 0, ret = 0;
 
 	if (size < driver_hash[caam_algo].digestsize) {
-		free(ctx);
 		return -EINVAL;
 	}
 
@@ -152,11 +151,12 @@ static int caam_hash_finish(void *hash_ctx, void *dest_buf,
 
 	ret = run_descriptor_jr(ctx->sha_desc);
 
-	if (ret)
+	if (ret) {
 		debug("Error %x\n", ret);
-	else
+		return ret;
+	} else {
 		memcpy(dest_buf, ctx->hash, sizeof(ctx->hash));
-
+	}
 	free(ctx);
 	return ret;
 }
@@ -168,16 +168,17 @@ int caam_hash(const unsigned char *pbuf, unsigned int buf_len,
 	uint32_t *desc;
 	unsigned int size;
 
-	desc = malloc_cache_aligned(sizeof(int) * MAX_CAAM_DESCSIZE);
-	if (!desc) {
-		debug("Not enough memory for descriptor allocation\n");
-		return -ENOMEM;
-	}
-
 	if (!IS_ALIGNED((uintptr_t)pbuf, ARCH_DMA_MINALIGN) ||
 	    !IS_ALIGNED((uintptr_t)pout, ARCH_DMA_MINALIGN)) {
 		puts("Error: Address arguments are not aligned\n");
 		return -EINVAL;
+	}
+
+	debug("\ncaam hash\n");
+	desc = malloc_cache_aligned(sizeof(int) * MAX_CAAM_DESCSIZE);
+	if (!desc) {
+		debug("Not enough memory for descriptor allocation\n");
+		return -ENOMEM;
 	}
 
 	size = ALIGN(buf_len, ARCH_DMA_MINALIGN);
@@ -190,6 +191,8 @@ int caam_hash(const unsigned char *pbuf, unsigned int buf_len,
 
 	size = ALIGN(sizeof(int) * MAX_CAAM_DESCSIZE, ARCH_DMA_MINALIGN);
 	flush_dcache_range((unsigned long)desc, (unsigned long)desc + size);
+	size = ALIGN(driver_hash[algo].digestsize, ARCH_DMA_MINALIGN);
+	invalidate_dcache_range((unsigned long)pout, (unsigned long)pout + size);
 
 	ret = run_descriptor_jr(desc);
 

@@ -644,7 +644,9 @@ static void flashing(char *cmd, char *response)
 			printf("Append ec attestation key successfully!\n");
 			strcpy(response, "OKAY");
 		}
-	}  else if (endswith(cmd, FASTBOOT_GET_MPPUBK)) {
+	}
+#ifdef CONFIG_GENERATE_MPPUBK
+	else if (endswith(cmd, FASTBOOT_GET_MPPUBK)) {
 		if (fastboot_get_mppubk(fastboot_buf_addr, &fastboot_bytes_received)) {
 			printf("ERROR Generate mppubk failed!\n");
 			strcpy(response, "FAILGenerate mppubk failed!");
@@ -652,7 +654,9 @@ static void flashing(char *cmd, char *response)
 			printf("mppubk generated!\n");
 			strcpy(response, "OKAY");
 		}
-	}  else if (endswith(cmd, FASTBOOT_GET_SERIAL_NUMBER)) {
+	}
+#endif
+	else if (endswith(cmd, FASTBOOT_GET_SERIAL_NUMBER)) {
 		char *serial = get_serial();
 
 		if (!serial)
@@ -682,33 +686,13 @@ static void flashing(char *cmd, char *response)
 		}
 	}
 #ifdef CONFIG_ID_ATTESTATION
-	else if (endswith(cmd, FASTBOOT_APPEND_ATTESTATION_ID)) {
-		if (trusty_append_attestation_id(ATTESTATION_ID_BRAND, strlen(ATTESTATION_ID_BRAND))) {
-			printf("Error append ATTESTATION_ID_BRAND failed!\n");
-			strcpy(response, "FAILAppend ATTESTATION_ID_BRAND failed!");
-		} else if (trusty_append_attestation_id(ATTESTATION_ID_DEVICE, strlen(ATTESTATION_ID_DEVICE))) {
-			printf("Error append ATTESTATION_ID_DEVICE failed!\n");
-			strcpy(response, "FAILAppend ATTESTATION_ID_DEVICE failed!");
-		} else if (trusty_append_attestation_id(CONFIG_ATTESTATION_ID_PRODUCT, strlen(CONFIG_ATTESTATION_ID_PRODUCT))) {
-			printf("Error append ATTESTATION_ID_PRODUCT failed!\n");
-			strcpy(response, "FAILAppend ATTESTATION_ID_PRODUCT failed!");
-		} else if (trusty_append_attestation_id(ATTESTATION_ID_MANUFACTURER, strlen(ATTESTATION_ID_MANUFACTURER))) {
-			printf("Error append ATTESTATION_ID_MANUFACTURER failed!\n");
-			strcpy(response, "FAILAppend ATTESTATION_ID_MANUFACTURER failed!");
-		} else if (trusty_append_attestation_id(ATTESTATION_ID_MODEL, strlen(ATTESTATION_ID_MODEL))) {
-			printf("Error append ATTESTATION_ID_MODEL failed!\n");
-			strcpy(response, "FAILAppend ATTESTATION_ID_MODEL failed!");
+	else if (endswith(cmd, FASTBOOT_SET_ATTESTATION_ID)) {
+		if (trusty_set_attestation_id()) {
+			printf("ERROR set device ids failed!\n");
+			strcpy(response, "FAILSet device ids failed!");
 		} else {
-			char *serial = get_serial();
-
-			if (!serial) {
-				printf("Error Failed to append the serial number!\n");
-				strcpy(response, "FAIL Failed to append the serial number!");
-			} else if (trusty_append_attestation_id(serial, 16)) {
-				printf("Error Failed to append the serial number!\n");
-				strcpy(response, "FAILFailed to append the serial number!");
-			} else
-				strcpy(response, "OKAY");
+			printf("Set device ids successfully!\n");
+			strcpy(response, "OKAY");
 		}
 	}
 #endif

@@ -224,9 +224,9 @@ struct phy_device *inphi_phydev;
 
 int in112525_upload_firmware(struct phy_device *phydev)
 {
-	char line_temp[0x50] = {0};
-	char reg_addr[0x50] = {0};
-	char reg_data[0x50] = {0};
+	char line_temp[0x51] = {0};
+	char reg_addr[0x51] = {0};
+	char reg_data[0x51] = {0};
 	int i, line_cnt = 0, column_cnt = 0;
 	struct in112525_reg_config fw_temp;
 	char *addr = NULL;
@@ -755,9 +755,8 @@ int in112525_s03_lane_recovery(int lane)
 		}
 		break;
 	default:
-		dev_err(inphi_phydev->dev,
-			"Incorrect usage of APIs in %s driver\n",
-			inphi_phydev->drv->name);
+		pr_err("Incorrect usage of APIs in %s driver\n",
+		       inphi_phydev->drv->name);
 		break;
 	}
 
