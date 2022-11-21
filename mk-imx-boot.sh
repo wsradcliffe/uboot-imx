@@ -10,8 +10,8 @@
 typeset -A config
 config=(
     [board]="maaxboard"
-    [tag]="lf-5.10.35-2.0.0"
-    [firmware]="firmware-imx-8.12.bin"
+    [tag]="lf-5.10.72-2.2.2"
+    [firmware]="firmware-imx-8.14.bin"
 #    [cc]="aarch64-linux-gnu-"
 #    [cc]="aarch64-none-linux-gnu-"
 #    [cc]="aarch64-poky-linux-"
