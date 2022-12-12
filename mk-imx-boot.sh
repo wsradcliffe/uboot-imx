@@ -1,4 +1,3 @@
-#
 #!/bin/bash
 #
 # This is a help script to build imx-boot[flash.bin] for maaxboard
@@ -12,7 +11,7 @@ config=(
     [board]="maaxboard"
     [tag]="rel_imx_5.4.24_2.1.0"
     [firmware]="firmware-imx-8.8.bin"
-    [cc]="aarch64-poky-linux-"
+#    [cc]="aarch64-poky-linux-"
     [ddr]="ddr4_imem_1d_201810.bin ddr4_dmem_1d_201810.bin ddr4_imem_2d_201810.bin ddr4_dmem_2d_201810.bin"
     [ddr_version]="_201810"
     [uboot_defconfig]="maaxboard_defconfig"
@@ -51,14 +50,15 @@ IMX_ATF_REMOTE_REPO=$IMX_GIT_REMOTE/$IMX_ATF_NAME
 
 UBOOT_PATH=$(dirname $(realpath $0))
 IMX_BOOT_PATH=$(realpath $UBOOT_PATH/../imx-boot)
+
+mkdir -p $IMX_BOOT_PATH
+
 IMX_MKIMAGE_PATH=$(realpath $IMX_BOOT_PATH/$IMX_MKIMAGE_NAME)
 IMX_ATF_PATH=$(realpath $IMX_BOOT_PATH/$IMX_ATF_NAME)
 IMX_FIRMWARE_D_PATH="$IMX_BOOT_PATH/${config[firmware]%.*}"
 
 PLATFORM="imx8mq"
 SOC_TARGET="iMX8M"
-
-mkdir -p $IMX_BOOT_PATH
 
 function do_set_board_env() {
     local board="$1"
@@ -100,7 +100,7 @@ function do_repo_clone() {
     local ret=0
 
     printf "repo: clone [$remote] to [$local_path] ... "
-    proxychains4 git clone "$remote" "$local_path" > /dev/null 2>&1
+    git clone "$remote" "$local_path" > /dev/null 2>&1
     ret=$?
     if [ $ret -eq 0 ]; then
         printf "[OK]\n"
@@ -252,6 +252,7 @@ function do_mkimage_cp_uboot() {
     printf "uboot: cp: dtb: [$dtb] to [$dtb_dst] ... [OK]\n"
 
     cp "$src/spl/u-boot-spl.bin" "$spl_bin_dst"
+    cp "$src/spl/u-boot-spl.bin" "$dst/"
     printf "uboot: cp: bin: [spl/u-boot-spl.bin] to [$spl_bin_dst] ... [OK]\n"
 
     cp "$src/u-boot-nodtb.bin" "$dst/"
@@ -274,7 +275,13 @@ function do_atf_make() {
     # Clear LDFLAGS to avoid the option -Wl recognize issue
     unset LDFLAGS
 
-    make CROSS_COMPILE="${config[cc]}" PLAT="${PLATFORM}" -j8 > /dev/null 2>&1
+    if [[ -n "${config[cc]}" ]]; then
+        printf "imx-atf: make CROSS_COMPILE=${config[cc]} PLAT=${PLATFORM} ... "
+        make CROSS_COMPILE="${config[cc]}" PLAT="${PLATFORM}" -j8 > /dev/null 2>&1
+    else
+        printf "imx-atf: make CROSS_COMPILE=${CROSS_COMPILE} PLAT=${PLATFORM} .. . "
+        make PLAT="${PLATFORM}" -j8 > /dev/null 2>&1
+    fi
 
     if [ $? -eq 0 ]; then
         printf "[OK]\n"
@@ -304,7 +311,7 @@ function do_mkimage_make() {
 
     make clean > /dev/null 2>&1
 
-    make SOC=${SOC_TARGET} DDR_FW_VERSION=${config[ddr_version]} ${target} > /dev/null 2>&1
+    make SOC=${SOC_TARGET} DDR_FW_VERSION=${config[ddr_version]} ${target} #> /dev/null 2>&1
     if [ $? -eq 0 ]; then
         printf "[OK]\n"
     else
