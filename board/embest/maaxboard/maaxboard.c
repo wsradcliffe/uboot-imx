@@ -108,10 +108,33 @@ int ft_board_setup(void *blob, bd_t *bd)
 }
 #endif
 
-#define POWER_LED_PAD IMX_GPIO_NR(1, 8)
+#define POWER_LED_PAD IMX_GPIO_NR(4, 12)
+#define LED_5V_ON_PAD IMX_GPIO_NR(4, 20)
+#define SDCARD_RST_PAD IMX_GPIO_NR(4, 24)
+
 static iomux_v3_cfg_t const leds_pads[] = {
-       IMX8MQ_PAD_GPIO1_IO08__GPIO1_IO8 | MUX_PAD_CTRL(NO_PAD_CTRL),
+       IMX8MQ_PAD_SAI2_TXFS__GPIO4_IO24 | MUX_PAD_CTRL(NO_PAD_CTRL),
+       IMX8MQ_PAD_SAI1_MCLK__GPIO4_IO20 | MUX_PAD_CTRL(NO_PAD_CTRL),
+       IMX8MQ_PAD_SAI1_TXD0__GPIO4_IO12 | MUX_PAD_CTRL(NO_PAD_CTRL),
+       IMX8MQ_PAD_SAI1_TXD1__GPIO4_IO13 | MUX_PAD_CTRL(NO_PAD_CTRL),
+       IMX8MQ_PAD_SAI1_TXD2__GPIO4_IO14 | MUX_PAD_CTRL(NO_PAD_CTRL),
+       IMX8MQ_PAD_SAI1_TXD4__GPIO4_IO16 | MUX_PAD_CTRL(NO_PAD_CTRL),
+       IMX8MQ_PAD_SAI1_TXD5__GPIO4_IO17 | MUX_PAD_CTRL(NO_PAD_CTRL),
+       IMX8MQ_PAD_SAI1_TXD6__GPIO4_IO18 | MUX_PAD_CTRL(NO_PAD_CTRL),
+       IMX8MQ_PAD_SAI1_RXD0__GPIO4_IO2  | MUX_PAD_CTRL(NO_PAD_CTRL),
+       IMX8MQ_PAD_SAI1_RXD1__GPIO4_IO3  | MUX_PAD_CTRL(NO_PAD_CTRL),
+       IMX8MQ_PAD_SAI1_RXD2__GPIO4_IO4  | MUX_PAD_CTRL(NO_PAD_CTRL),
+       IMX8MQ_PAD_SAI1_RXD4__GPIO4_IO6  | MUX_PAD_CTRL(NO_PAD_CTRL),
+       IMX8MQ_PAD_SAI1_RXD5__GPIO4_IO7  | MUX_PAD_CTRL(NO_PAD_CTRL),
+       IMX8MQ_PAD_SAI1_RXD6__GPIO4_IO8  | MUX_PAD_CTRL(NO_PAD_CTRL),
 };
+
+#define init_gpio(gpio, value, label)			\
+       do {						\
+		gpio_request((gpio), (label));		\
+		gpio_direction_output((gpio), (value));	\
+       } while (0)
+
 static void led_on(void)
 {
        imx_iomux_v3_setup_multiple_pads(leds_pads,
@@ -119,6 +142,25 @@ static void led_on(void)
 
        gpio_request(POWER_LED_PAD, "sys_led");
        gpio_direction_output(POWER_LED_PAD, 1);
+
+       gpio_request(LED_5V_ON_PAD, "led_5v_on");
+       gpio_direction_output(LED_5V_ON_PAD, 1);
+
+       gpio_request(SDCARD_RST_PAD, "sd_rst");
+       gpio_direction_output(SDCARD_RST_PAD, 1);
+
+       /* turn other LEDs off */
+       init_gpio(IMX_GPIO_NR(4,13), 0, "LED1_GRN");
+       init_gpio(IMX_GPIO_NR(4,14), 0, "LED1_BLU");
+       init_gpio(IMX_GPIO_NR(4,16), 0, "LED2_RED");
+       init_gpio(IMX_GPIO_NR(4,17), 0, "LED2_GRN");
+       init_gpio(IMX_GPIO_NR(4,18), 0, "LED2_BLU");
+       init_gpio(IMX_GPIO_NR(4, 2), 0, "LED3_RED");
+       init_gpio(IMX_GPIO_NR(4, 3), 0, "LED3_GRN");
+       init_gpio(IMX_GPIO_NR(4, 4), 0, "LED3_BLU");
+       init_gpio(IMX_GPIO_NR(4, 6), 0, "LED4_RED");
+       init_gpio(IMX_GPIO_NR(4, 7), 0, "LED4_GRN");
+       init_gpio(IMX_GPIO_NR(4, 8), 0, "LED4_BLU");
 }
 
 #ifdef CONFIG_FEC_MXC
